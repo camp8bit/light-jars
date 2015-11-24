@@ -16,7 +16,9 @@
 #include <Oscil.h>
 #include <EventDelay.h>
 #include <ADSR.h>
-#include <tables/sin8192_int8.h> 
+//#include <tables/sin8192_int8.h> 
+#include <tables/saw8192_int8.h> 
+//#include <tables/phasor256_int8.h> 
 #include <mozzi_rand.h>
 #include <mozzi_midi.h>
 #include <LowPassFilter.h>
@@ -54,9 +56,18 @@ CRGB leds[NUM_LEDS];
 
 #define CONTROL_RATE 64
 
+/*
 Oscil <8192, AUDIO_RATE> vco1(SIN8192_DATA);; 
 Oscil <8192, AUDIO_RATE> vco2(SIN8192_DATA);; 
 Oscil <8192, AUDIO_RATE> vco3(SIN8192_DATA);; 
+*/
+
+Oscil <8192, AUDIO_RATE> vco1(SAW8192_DATA);; 
+Oscil <8192, AUDIO_RATE> vco2(SAW8192_DATA);; 
+Oscil <8192, AUDIO_RATE> vco3(SAW8192_DATA);; 
+
+Oscil <8192, AUDIO_RATE> env_vco(SAW8192_DATA);; 
+
 
 LowPassFilter lpf;
 
@@ -74,19 +85,30 @@ void setup(){
   randSeed(); // fresh random
   noteDelay.set(2000); // 2 second countdown
   startMozzi(CONTROL_RATE);
+  lpf.setResonance(100);
+
+  env_vco.setFreq(4);
 }
 
 
-unsigned int duration, attack, decay, sustain, release_ms, intensity;
+unsigned int duration, attack, decay, sustain, release_ms;
+
+byte intensity;
+
 int controlTicks = 0;
 byte hue;
 
+const int primes[] = { 3, 5, 7, 11, 13, 17, 19, 23 };
+
+byte cutoff_freq = 0; 
+
 void updateControl(){
+  
   if(noteDelay.ready()){
     
       // choose envelope levels
-      byte attack_level = 255; // rand(128)+127;
-      byte decay_level = rand(128)+127; // rand(255);
+      byte attack_level = 200; // rand(128)+127;
+      byte decay_level = 0;//rand(128)+127; // rand(255);
       envelope.setADLevels(attack_level,decay_level);
 
     // generate a random new adsr time parameter value in milliseconds
@@ -111,25 +133,27 @@ void updateControl(){
        break;
      }
      attack = 2500;
-     decay = 500;
-     sustain = rand(4000) + 1000;
-     release_ms = 3500;
+     decay = 2500;
+     sustain = 0; //rand(4000) + 1000;
+     release_ms = 500;
      envelope.setTimes(attack,decay,sustain,release_ms);    
      envelope.noteOn();
 
      byte midi_note = rand(32);
      hue = midi_note * 8;
      midi_note += 42;
+
+     int baseFreq = (int)mtof(midi_note);
      
      // detuned oscillators
-     vco1.setFreq((int)mtof(midi_note));
-     byte beatFrequency = rand(32);
-     vco2.setFreq((int)mtof(midi_note) - beatFrequency);
+     vco1.setFreq(baseFreq);
+     byte beatFrequency = rand(32)+16;
+     vco2.setFreq(baseFreq  + primes[rand(8)]);
 
      // bass
-     vco3.setFreq(rand(128) + 128);
+     vco3.setFreq(baseFreq - primes[rand(8)]);
 
-     Serial.print("midi_note\t"); Serial.println(midi_note);
+     Serial.print("midi_note\t"); Serial.println(midi_note); 
 
 /*
      // print to screen
@@ -144,10 +168,10 @@ void updateControl(){
 */
      noteDelay.start(attack+decay+sustain+release_ms);
 
-     lpf.setResonance(200);
+    // map the modulation into the filter range (0-255)
 
    }
-
+   Serial.println(cutoff_freq);
   controlTicks++;
 
   if (true) { // controlTicks % 3 == 0){
@@ -175,10 +199,15 @@ void updateControl(){
 
 
 int updateAudio(){
-  intensity = envelope.next();
+  //intensity = envelope.next();
+  intensity = ((int)envelope.next() * (int)env_vco.next()) >> 8;
+  cutoff_freq = 100; //(int)(intensity/2) + 50;
 
-  int v = vco3.next();
-  int beatFreq = (vco1.next() + vco2.next() + v + v) >> 2;
+  lpf.setCutoffFreq(cutoff_freq);
+
+  int v = vco1.next();
+  int beatFreq = lpf.next((vco2.next() + vco3.next() + v + v) >> 2);
+  //int beatFreq = (vco2.next() + vco3.next() + v + v) >> 2;
   return (int) (intensity * beatFreq) >> 8;
 }
 
