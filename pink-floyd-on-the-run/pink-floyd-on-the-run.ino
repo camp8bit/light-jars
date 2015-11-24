@@ -88,8 +88,8 @@ void updateControl(){
      note++;
      note = note % length;
      byte midi_note = notes[note];
-     vco1.setFreq((int)mtof(midi_note));
-     vco2.setFreq((int)mtof(midi_note + 12));
+     vco1.setFreq((int)mtof(midi_note + 12));
+     vco2.setFreq((int)mtof(midi_note + 24));
     
 /*
      // print to screen
@@ -111,6 +111,7 @@ void updateControl(){
 
 int updateAudio(){
   int v = (vco1.next() + vco2.next()) >> 1;
+  // int v = vco1.next();
   return (int) (envelope.next() * v) >> 8;
 }
 
