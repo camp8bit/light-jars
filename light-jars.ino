@@ -159,7 +159,7 @@ void updateControl(){
       i = 0;
     }
     
-    CRGB color = CHSV(hue, i, i);
+    CRGB color = CHSV(hue, 255, i);
     // CRGB color = CRGB(pgm_read_byte(&gamma[base.red]), pgm_read_byte(&gamma[base.green]), pgm_read_byte(&gamma[base.blue]));
 
     for (i=0;i<NUM_LEDS;i++){
