@@ -49,29 +49,33 @@ const uint8_t PROGMEM gamma[] = {
 #define DATA_PIN 3
 #define CLOCK_PIN 4
 
+#define SENSOR_PIN 5
+
 // Define the array of leds
 CRGB leds[NUM_LEDS];
 
 #define CONTROL_RATE 64
 
-Oscil <8192, AUDIO_RATE> vco1(SIN8192_DATA);; 
-Oscil <8192, AUDIO_RATE> vco2(SIN8192_DATA);; 
+Oscil <8192, AUDIO_RATE> vco1(SIN8192_DATA);
+Oscil <8192, AUDIO_RATE> vco2(SIN8192_DATA);
 
 // for triggering the envelope
-EventDelay noteDelay;
+EventDelay noteTimer;
 
 ADSR <CONTROL_RATE, AUDIO_RATE> envelope;
 
-boolean note_is_on = true;
+boolean noteOn = true;
 
 void setup(){
   FastLED.addLeds<LPD8806, DATA_PIN, CLOCK_PIN, BGR>(leds, NUM_LEDS);
   // Serial.begin(9600); // for Teensy 3.1, beware printout can cause glitches
   //Serial.begin(115200);
   randSeed(); // fresh random
-  noteDelay.set(200); // 2 second countdown
+  noteTimer.set(200); // 200ms countdown
   startMozzi(CONTROL_RATE);
   // env_vco.setFreq(0.5f);
+  pinMode(SENSOR_PIN, INPUT);
+
 }
 
 
@@ -89,104 +93,75 @@ const int blues_scale[] = { 0, 3, 5, 6, 7, 10, 12, 15, 17, 18, 19, 22, 24 };
 byte cutoff_freq = 0; 
 
 void updateControl(){
-  
-  if(noteDelay.ready()){
-    
-      // choose envelope levels
-     byte attack_level = 255; // rand(128)+127;
-     byte decay_level = 192;//rand(128)+127; // rand(255);
-     envelope.setADLevels(attack_level,decay_level);
+  int sensor = digitalRead(SENSOR_PIN);
 
-     attack = 1000;
-     decay = 1000;
-     sustain = rand(2000) + 1000;
-     release_ms = 1500;
-     envelope.setTimes(attack,decay,sustain,release_ms);    
-     envelope.noteOn();
-
-     byte midi_note = rand(24);
-     hue = (int) midi_note * 255 / 24;
-     midi_note += 52;
-
-     int baseFreq = (int)mtof(midi_note);
-
-     // baseFreq = 400;
-      
-     // detuned oscillators
-     vco1.setFreq(baseFreq);
-     byte beatFrequency = rand(32);
-     vco2.setFreq(baseFreq + beatFrequency);
-
-     // bass
-     // vco3.setFreq(rand(150) + 100);
-
-     //Serial.print("midi_note\t"); Serial.println(midi_note); 
-
-/*
-     // print to screen
-     Serial.print("midi_note\t"); Serial.println(midi_note);
-     Serial.print("attack_level\t"); Serial.println(attack_level);
-     Serial.print("decay_level\t"); Serial.println(decay_level);
-     Serial.print("attack\t\t"); Serial.println(attack);
-     Serial.print("decay\t\t"); Serial.println(decay);
-     Serial.print("sustain\t\t"); Serial.println(sustain);
-     Serial.print("release\t\t"); Serial.println(release_ms);
-     Serial.println();
-*/
-     noteDelay.start(attack+decay+sustain+release_ms);
-
-    // map the modulation into the filter range (0-255)
-
-   }
-   //Serial.println(intensity);
-  controlTicks++;
-
-  if (true) { // controlTicks % 3 == 0){
-    int i;
-
-    i  = intensity;
-
-    if (i < 8) {
-      i = 0;
-    }
-    
-    CRGB color = CHSV(hue, 255, i);
-    // CRGB color = CRGB(pgm_read_byte(&gamma[base.red]), pgm_read_byte(&gamma[base.green]), pgm_read_byte(&gamma[base.blue]));
-
-    for (i=0;i<NUM_LEDS;i++){
-      // leds[i] = CRGB(intensity, 0, 0);
-      leds[i] = color;
-    }
-    
-    FastLED.show();
+  if (!noteOn && sensor) {
+    startNote();
   }
   
-  envelope.update();
-} 
+  if(noteTimer.ready()){
+    stopNote();
+  }
 
+  controlTicks++;
+
+  byte i = intensity;
+  if (i < 8) {
+    i = 0;
+  }
+  if (!noteOn) {
+    i = 0;
+  }
+  fill_solid(leds, NUM_LEDS, CHSV(hue, 255, i));
+  FastLED.show();
+
+  // Important bit
+  envelope.update();
+}
+
+void startNote() {
+  noteOn = true;
+  
+  // choose envelope levels
+  byte attack_level = 255; // rand(128)+127;
+  byte decay_level = 192;//rand(128)+127; // rand(255);
+  envelope.setADLevels(attack_level,decay_level);
+  
+  attack = 100;
+  decay = 100;
+  sustain = rand(200) + 100;
+  release_ms = 150;
+  envelope.setTimes(attack,decay,sustain,release_ms);    
+  envelope.noteOn();
+  
+  byte midi_note = rand(24);
+  hue = (int) midi_note * 255 / 24;
+  midi_note += 52;
+  
+  int baseFreq = (int)mtof(midi_note);
+  
+  // baseFreq = 400;
+  
+  // detuned oscillators
+  vco1.setFreq(baseFreq);
+  byte beatFrequency = rand(32);
+  vco2.setFreq(baseFreq + beatFrequency);
+
+  noteTimer.start(attack+decay+sustain+release_ms);
+}
+
+void stopNote() {
+  noteOn = false;
+}
 
 int updateAudio(){
-  // long x = env_vco.next();
   intensity = envelope.next();
 
-  // do twice at 8mhz
-  //intensity = envelope.next();
-  // intensity = y;//(x*y) >> 8;
-//  intensity = ((int)envelope.next() * x) >> 8;
-  //cutoff_freq = intensity;
-
-  //lpf.setCutoffFreq(cutoff_freq);
-
-  // int v = vco3.next() * 2;
-  // vco2.next();
-  int v = (vco1.next() + vco2.next()) >> 1;
-  // v = 0;
-
-  // intensity = 255;
+  if (!noteOn) {
+    intensity = 0;
+  }
   
-  //v = v >> 1;
-  //int beatFreq = lpf.next((vco2.next() + vco3.next() + v + v) >> 2);
-  //int beatFreq = (vco2.next() + vco3.next() + v + v) >> 2;
+  int v = (vco1.next() + vco2.next()) >> 1;
   return (int) (intensity * v) >> 8;
 }
 
