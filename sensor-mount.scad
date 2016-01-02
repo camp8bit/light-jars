@@ -6,7 +6,6 @@
     
     Todo:
         * Check maths for arm lengths. 
-        * Make a hole for PIR mounts so don't have to drill out
         * Rotate the "grabbers" so that they are at a tangent
           to the jar lid
         * Put the camp 8 bit space invader on the design somewhere
@@ -22,12 +21,23 @@ lipOverhang = 20;
 proudness = 5;
 
 mountGap = 33;
-mountHoleSize = 2;
+mountHoleSize = 1.5;
 
 thickness = 6;
 bulkhead = [50, thickness, thickness];
 
-cube(bulkhead, true);
+difference () {
+    cube(bulkhead, true);
+    
+    union() {
+        translate([mountGap / 2, 0, 0]){
+            cylinder(thickness * 2, mountHoleSize, mountHoleSize, true);
+        }
+        translate([-mountGap / 2, 0, 0]){
+            cylinder(thickness * 2, mountHoleSize, mountHoleSize, true);
+        }
+    }
+}
 
 support = [jarDiameter - bulkhead[0] + thickness * 2, thickness, thickness];
 
