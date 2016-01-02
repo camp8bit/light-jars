@@ -5,7 +5,6 @@
     faces straight down in the direction the speaker faces.
     
     Todo:
-        * Check maths for arm lengths. 
         * Rotate the "grabbers" so that they are at a tangent
           to the jar lid
         * Put the camp 8 bit space invader on the design somewhere
@@ -15,8 +14,8 @@
         
 */
 
-jarDiameter = 86;
-
+lidDiameter = 86;
+lidDepth = 16;
 lipOverhang = 20;
 proudness = 5;
 
@@ -25,6 +24,13 @@ mountHoleSize = 1.5;
 
 thickness = 6;
 bulkhead = [50, thickness, thickness];
+
+// Undersizing to get a press tight fit
+pressTightness = 0.5;
+
+translate([0, 0, proudness + thickness / 2]){
+    %cylinder(lidDepth, lidDiameter, lidDiameter);
+}
 
 difference () {
     cube(bulkhead, true);
@@ -39,10 +45,10 @@ difference () {
     }
 }
 
-support = [jarDiameter - bulkhead[0] + thickness * 2, thickness, thickness];
+support = [lidDiameter - bulkhead[0] * (1 - sin(45)) - pressTightness, thickness, thickness];
 
 for (params = [[45, 1, 1], [-45, -1, 1], [-135, -1, -1], [135, 1, -1]]) {
-    translate([params[2] * (bulkhead[0] * 0.707 + thickness), params[1] * support[0] * 0.33, 0]) {
+    translate([params[2] * (bulkhead[0] - thickness / 2), params[1] * support[0] * 0.33, 0]) {
         rotate([0,0,params[0]]){
             cube(support, true);
             translate([support[0] / 2, 0, 0]){
