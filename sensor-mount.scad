@@ -5,8 +5,6 @@
     faces straight down in the direction the speaker faces.
     
     Todo:
-        * Rotate the "grabbers" so that they are at a tangent
-          to the jar lid
         * Put the camp 8 bit space invader on the design somewhere
 
     Author:
