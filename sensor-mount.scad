@@ -1,3 +1,20 @@
+/*
+
+    This is a mounting plate that sits over a speaker mounted in the jar lid, and 
+    lets to mount the PIR sensor through the two screw holes so that the PIR
+    faces straight down in the direction the speaker faces.
+    
+    Todo:
+        * Check maths for arm lengths. 
+        * Make a hole for PIR mounts so don't have to drill out
+        * Rotate the "grabbers" so that they are at a tangent
+          to the jar lid
+        * Put the camp 8 bit space invader on the design somewhere
+
+    Author:
+        Ben Nolan <bnolan@gmail.com>
+        
+*/
 
 jarDiameter = 86;
 
@@ -9,8 +26,6 @@ mountHoleSize = 2;
 
 thickness = 6;
 bulkhead = [50, thickness, thickness];
-
-// cylinder(jarDiameter);
 
 cube(bulkhead, true);
 
