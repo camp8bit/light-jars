@@ -16,9 +16,9 @@ cube(bulkhead, true);
 
 support = [jarDiameter - bulkhead[0] + thickness * 2, thickness, thickness];
 
-for (rotation = [[45, 1], [-45, -1], [-135, -1], [135, 1]]) {
-    translate([bulkhead[0] * 0.707 + thickness, support[0] * 0.33, 0]) {
-        rotate([0,0,45]){
+for (params = [[45, 1, 1], [-45, -1, 1], [-135, -1, -1], [135, 1, -1]]) {
+    translate([params[2] * (bulkhead[0] * 0.707 + thickness), params[1] * support[0] * 0.33, 0]) {
+        rotate([0,0,params[0]]){
             cube(support, true);
             translate([support[0] / 2, 0, 0]){
                 translate([-thickness / 2, 0, proudness]){
@@ -38,29 +38,3 @@ for (rotation = [[45, 1], [-45, -1], [-135, -1], [135, 1]]) {
     }
 }
 
-translate([bulkhead[0] * 0.707 + thickness, -support[0] * 0.33, 0]) {
-    rotate([0,0,-45]){
-        cube(support, true);
-        translate([support[0] / 2, 0, lipOverhang / 2 - thickness / 2]){
-            cube([thickness, thickness, lipOverhang], true);
-        }
-    }
-}
-
-translate([-bulkhead[0] * 0.707 - thickness, -support[0] * 0.33, 0]) {
-    rotate([0,0,-135]){
-        cube(support, true);
-        translate([support[0] / 2, 0, lipOverhang / 2 - thickness / 2]){
-            cube([thickness, thickness, lipOverhang], true);
-        }
-    }
-}
-
-translate([-bulkhead[0] * 0.707 - thickness, support[0] * 0.33, 0]) {
-    rotate([0,0,135]){
-        cube(support, true);
-        translate([support[0] / 2, 0, lipOverhang / 2 - thickness / 2]){
-            cube([thickness, thickness, lipOverhang], true);
-        }
-    }
-}
