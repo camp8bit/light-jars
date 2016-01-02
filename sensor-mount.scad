@@ -47,7 +47,14 @@ difference () {
 
 support = [lidDiameter - bulkhead[0] * (1 - sin(45)) - pressTightness, thickness, thickness];
 
-for (params = [[45, 1, 1], [-45, -1, 1], [-135, -1, -1], [135, 1, -1]]) {
+clampRotation = 14;
+
+for (params = [
+        [45, 1, 1, -clampRotation], 
+        [-45, -1, 1, clampRotation], 
+        [-135, -1, -1, -clampRotation], 
+        [135, 1, -1, clampRotation]
+    ]) {
     translate([params[2] * (bulkhead[0] - thickness / 2), params[1] * support[0] * 0.33, 0]) {
         rotate([0,0,params[0]]){
             cube(support, true);
@@ -60,7 +67,9 @@ for (params = [[45, 1, 1], [-45, -1, 1], [-135, -1, -1], [135, 1, -1]]) {
                     difference() {
                         cylinder(lipOverhang, thickness / 2, thickness / 2, true);
                         translate([-thickness * 0.6, 0, 0]){
-                            cube([thickness, thickness, lipOverhang * 2], true);
+                            rotate([0,0,params[3]]){
+                                cube([thickness, thickness * 2, lipOverhang * 2], true);
+                            }
                         }
                     }
                 }
