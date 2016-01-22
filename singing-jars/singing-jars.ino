@@ -127,10 +127,10 @@ void startNote() {
   byte decay_level = 192;//rand(128)+127; // rand(255);
   envelope.setADLevels(attack_level,decay_level);
   
-  attack = 100;
-  decay = 100;
-  sustain = rand(200) + 100;
-  release_ms = 150;
+  attack = 1000;
+  decay = 1000;
+  sustain = rand(2000) + 100;
+  release_ms = 1500;
   envelope.setTimes(attack,decay,sustain,release_ms);    
   envelope.noteOn();
   

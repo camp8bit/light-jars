@@ -12,7 +12,7 @@
         
 */
 
-lidDiameter = 86;
+lidDiameter = 43;
 lidDepth = 16;
 lipOverhang = 20;
 proudness = 5;
@@ -21,7 +21,7 @@ mountGap = 33;
 mountHoleSize = 1.5;
 
 thickness = 6;
-bulkhead = [50, thickness, thickness];
+bulkhead = [27, thickness, thickness];
 
 // Undersizing to get a press tight fit
 pressTightness = 0.5;
