@@ -14,14 +14,14 @@
 
 lidDiameter = 43;
 lidDepth = 16;
-lipOverhang = 20;
-proudness = 5;
+lipOverhang = 27;
+proudness = 15;
 
 mountGap = 33;
 mountHoleSize = 1.5;
 
 thickness = 6;
-bulkhead = [27, thickness, thickness];
+bulkhead = [28, thickness, thickness];
 
 // Undersizing to get a press tight fit
 pressTightness = 0.5;
@@ -57,7 +57,7 @@ for (params = [
         rotate([0,0,params[0]]){
             cube(support, true);
             translate([support[0] / 2, 0, 0]){
-                translate([-thickness / 2, 0, proudness]){
+                translate([-thickness / 2, 0, proudness * 0.5]){
                     cube([thickness, thickness, proudness], true);
                 }
                 
